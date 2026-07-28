@@ -37,10 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
 <div class="page-body" style="max-width:1000px;margin:0 auto;">
     <div class="page-header">
         <div><h1 class="page-title">Hi, <?= e($user['first_name']) ?> 👋</h1><p class="page-subtitle">Your assigned properties and maintenance tasks.</p></div>
-        <div class="d-flex gap-8">
-            <a href="tenants.php" class="btn btn-primary"><i class="fa-solid fa-users"></i> My Tenants</a>
-            <a href="<?= APP_URL ?>/auth/logout.php" class="btn btn-outline">Log Out</a>
-        </div>
+        <a href="<?= APP_URL ?>/auth/logout.php" class="btn btn-outline">Log Out</a>
     </div>
 
     <?php if ($msg = get_flash('success')): ?><div class="alert alert-success" data-autohide><?= e($msg) ?></div><?php endif; ?>
