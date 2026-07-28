@@ -1,0 +1,7 @@
+{
+    "name": "rentsphere/app",
+    "description": "RentSphere - Smart Property Management System",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    }
+}
