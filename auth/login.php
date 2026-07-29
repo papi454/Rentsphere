@@ -46,7 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $minutesLeft = ceil((strtotime($user['locked_until']) - time()) / 60);
             $errors[] = "Too many failed attempts. Your account is locked for {$minutesLeft} more minute(s).";
         } elseif (!$user['is_active']) {
-            $errors[] = 'Your account has been deactivated. Please contact your administrator.';
+            if ($user['role'] === 'tenant') {
+                $errors[] = 'Your account is awaiting approval from your property administrator. You\'ll get an email once you\'re approved.';
+            } else {
+                $errors[] = 'Your account has been deactivated. Please contact your administrator.';
+            }
         } elseif (!password_verify($password, $user['password_hash'])) {
             register_failed_login($user['id']);
             log_login_attempt($user['id'], 'failed');
@@ -63,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $db->prepare("INSERT INTO otp_codes (user_id, code, purpose, expires_at) VALUES (?, ?, 'login_2fa', ?)");
             $stmt->execute([$user['id'], $otp, $expiresAt]);
 
-            $emailBody = "
+$emailBody = "
 <div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;'>
     <div style='background:linear-gradient(135deg,#2563EB,#4F46E5,#06B6D4);padding:28px 24px;border-radius:16px 16px 0 0;text-align:center;'>
         <div style='width:48px;height:48px;background:#fff;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#2563EB;'>R</div>
@@ -138,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-primary w-full">Log In</button>
         </form>
         <div class="auth-footer-link">Don't have an account? <a href="register.php">Create one</a></div>
+        <div class="auth-footer-link">Are you a tenant? <a href="tenant_register.php">Sign up for the tenant portal</a></div>
     </div>
 </div>
 </body>

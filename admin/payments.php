@@ -148,7 +148,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="empty-state"><i class="fa-solid fa-hand-holding-dollar"></i><h3>No payments recorded yet</h3></div>
         <?php else: ?>
         <div class="table-wrap"><table class="data-table">
-            <thead><tr><th>Receipt #</th><th>Tenant</th><th>Unit</th><th>Type</th><th>Amount</th><th>Date</th><th>Method</th></tr></thead>
+            <thead><tr><th>Receipt #</th><th>Tenant</th><th>Unit</th><th>Type</th><th>Amount</th><th>Date</th><th>Method</th><th></th></tr></thead>
             <tbody>
             <?php foreach ($payments as $p): ?>
                 <tr>
@@ -159,6 +159,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <td>$<?= money($p['amount']) ?></td>
                     <td><?= format_date($p['payment_date']) ?></td>
                     <td><?= ucfirst(str_replace('_',' ',$p['payment_method'])) ?></td>
+                    <td><?php if ($p['receipt_number']): ?><a href="<?= APP_URL ?>/receipt.php?payment_id=<?= $p['id'] ?>" target="_blank" class="btn btn-outline btn-sm"><i class="fa-solid fa-receipt"></i></a><?php endif; ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
