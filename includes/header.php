@@ -75,6 +75,7 @@ function nav_active(string $file, string $current): string {
             </div>
             <div class="topbar-right">
                 <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-moon"></i></button>
+                <a href="<?= APP_URL ?>/auth/logout.php" class="icon-btn" style="text-decoration:none;" title="Log Out"><i class="fa-solid fa-right-from-bracket"></i></a>
                 <a href="<?= APP_URL ?>/admin/notifications.php" class="icon-btn" style="text-decoration:none;">
                     <i class="fa-solid fa-bell"></i>
                     <?php if ($unreadCount > 0): ?><span class="badge-dot"></span><?php endif; ?>

@@ -6,17 +6,7 @@ if (is_logged_in()) {
 }
 
 $db = Database::getConnection();
-
-// Only allow this page to create the very first administrator.
-// After that, additional admins/caretakers must be created from admin/users.php
-$existingAdmins = (int) $db->query("SELECT COUNT(*) FROM users WHERE role = 'administrator'")->fetchColumn();
-
 $errors = [];
-
-if ($existingAdmins > 0) {
-    flash('error', 'An administrator account already exists. Please log in, or ask your administrator to create your account.');
-    redirect(APP_URL . '/auth/login.php');
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify_or_die();
@@ -61,6 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$companyName]);
             $companyId = (int) $db->lastInsertId();
 
+            $slug = generate_unique_company_slug($db, $companyName, $companyId);
+            $db->prepare("UPDATE companies SET slug = ? WHERE id = ?")->execute([$slug, $companyId]);
+
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $db->prepare("INSERT INTO users (company_id, role, first_name, last_name, email, password_hash, is_email_verified)
                                    VALUES (?, 'administrator', ?, ?, ?, ?, 0)");
@@ -78,26 +71,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             log_activity('register', 'First administrator account created', $userId, $companyId);
 
             $verifyLink = APP_URL . '/auth/verify_email.php?token=' . $token;
-            $emailBody = $verifyLink = APP_URL . '/auth/verify_email.php?token=' . $token;
-            $emailBody = "
-<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;'>
-    <div style='background:linear-gradient(135deg,#2563EB,#4F46E5,#06B6D4);padding:32px 24px;border-radius:16px 16px 0 0;text-align:center;'>
-        <div style='width:56px;height:56px;background:#fff;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#2563EB;font-family:Arial,sans-serif;'>R</div>
-        <h1 style='color:#fff;margin:16px 0 0;font-size:22px;'>Welcome to RentSphere!</h1>
-    </div>
-    <div style='background:#ffffff;padding:32px 24px;border-radius:0 0 16px 16px;border:1px solid #E5E9F0;border-top:none;'>
-        <p style='font-size:15px;color:#111827;'>Hi {$firstName},</p>
-        <p style='font-size:14px;color:#6B7280;line-height:1.6;'>Thanks for creating your RentSphere account. Please verify your email address to activate it:</p>
-        <div style='text-align:center;margin:28px 0;'>
-            <a href='{$verifyLink}' style='background:linear-gradient(135deg,#2563EB,#4F46E5);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block;'>Verify My Email</a>
-        </div>
-        <p style='font-size:12.5px;color:#9CA3AF;'>Or paste this link into your browser:<br><a href='{$verifyLink}' style='color:#2563EB;'>{$verifyLink}</a></p>
-        <p style='font-size:12.5px;color:#9CA3AF;margin-top:20px;'>This link expires in 1 hour. If you didn't create this account, you can safely ignore this email.</p>
-    </div>
-</div>";
-            send_email($email, $firstName, 'Verify your ' . APP_NAME . ' account', $emailBody);
+            $emailBody = build_email_html(
+                "Welcome, {$firstName} 👋",
+                "<p style='margin:0 0 12px;'>Thanks for creating your " . APP_NAME . " account. Please verify your email address to activate it and start managing your properties.</p>
+                 <p style='margin:0;color:#9AA4B8;font-size:13px;'>This link expires in 1 hour.</p>",
+                'Verify Email Address',
+                $verifyLink
+            );
+            @send_email($email, $firstName, 'Verify your ' . APP_NAME . ' account', $emailBody);
 
-            flash('success', 'Account created! Please check your email (' . e($email) . ') to verify your account before logging in.');
+            flash('success', 'Account created! Please check your email (' . e($email) . ') to verify your account before logging in. Your tenant sign-up link: ' . APP_URL . '/auth/tenant_register.php?company=' . $slug . ' (also available anytime in Settings).');
             redirect(APP_URL . '/auth/login.php');
         } catch (Throwable $e) {
             if ($db->inTransaction()) $db->rollBack();
@@ -123,8 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="auth-logo-mark">R</div>
             <div class="auth-logo-text"><?= e(APP_NAME) ?></div>
         </div>
-        <h1 class="auth-title">Create your administrator account</h1>
-        <p class="auth-subtitle">This is the first-time setup — you'll be the system's main administrator.</p>
+        <h1 class="auth-title">Create your company account</h1>
+        <p class="auth-subtitle">Set up RentSphere for your property business — you'll be the administrator.</p>
 
         <?php if (!empty($errors)): ?>
             <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i>

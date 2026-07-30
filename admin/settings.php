@@ -87,6 +87,15 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="card" style="max-width:640px;margin-top:20px;">
+    <h3><i class="fa-solid fa-link" style="color:var(--color-primary);"></i> Tenant Sign-Up Link</h3>
+    <p class="text-secondary">Share this with prospective tenants so they can create their own account under your company. You'll approve each request and assign their unit.</p>
+    <div class="d-flex gap-8">
+        <input type="text" class="form-control" readonly id="tenantLinkInput" value="<?= e(APP_URL . '/auth/tenant_register.php?company=' . ($company['slug'] ?? '')) ?>">
+        <button type="button" class="btn btn-outline" onclick="navigator.clipboard.writeText(document.getElementById('tenantLinkInput').value); this.textContent='Copied!';">Copy</button>
+    </div>
+</div>
+
+<div class="card" style="max-width:640px;margin-top:20px;">
     <h3>SMTP / Mail Settings</h3>
     <p class="text-secondary">Mail settings are currently configured in <code>config/config.php</code> (MAIL_HOST, MAIL_USERNAME, etc). Move these to the database-backed <code>settings</code> table if you want them editable from here.</p>
 </div>

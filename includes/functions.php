@@ -134,7 +134,69 @@ function format_date(?string $date, string $format = 'M j, Y'): string
 }
 
 // ---------------------------------------------------------
-// Mailer (PHPMailer wrapper)
+// Branded Email Template
+// Email clients strip <link> stylesheets and most CSS, so
+// everything here is inline styles / table-safe HTML.
+// ---------------------------------------------------------
+function build_email_html(string $heading, string $bodyHtml, ?string $ctaText = null, ?string $ctaUrl = null): string
+{
+    $cta = '';
+    if ($ctaText && $ctaUrl) {
+        $cta = '<tr><td style="padding:8px 0 4px;">
+            <a href="' . e($ctaUrl) . '" style="display:inline-block;background:linear-gradient(135deg,#2563EB,#4F46E5,#06B6D4);
+                color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:13px 28px;border-radius:10px;">
+                ' . e($ctaText) . '
+            </a>
+        </td></tr>';
+    }
+
+    return '
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F7FB;padding:32px 0;font-family:Arial,Helvetica,sans-serif;">
+        <tr><td align="center">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(16,24,40,0.08);">
+                <tr>
+                    <td style="background:linear-gradient(135deg,#2563EB 0%,#4F46E5 55%,#06B6D4 100%);padding:32px 36px;">
+                        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                            <td style="width:36px;height:36px;background:rgba(255,255,255,0.25);border-radius:9px;text-align:center;vertical-align:middle;color:#fff;font-family:Arial,sans-serif;font-weight:800;font-size:16px;">R</td>
+                            <td style="padding-left:10px;color:#ffffff;font-size:19px;font-weight:800;font-family:Arial,sans-serif;">' . e(APP_NAME) . '</td>
+                        </tr></table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:36px 36px 8px;">
+                        <h2 style="margin:0 0 14px;color:#111827;font-size:21px;font-family:Arial,sans-serif;">' . e($heading) . '</h2>
+                        <div style="color:#374151;font-size:14.5px;line-height:1.7;">' . $bodyHtml . '</div>
+                    </td>
+                </tr>
+                <tr><td style="padding:0 36px 8px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">' . $cta . '</table>
+                </td></tr>
+                <tr>
+                    <td style="padding:28px 36px 32px;">
+                        <p style="margin:0;color:#9AA4B8;font-size:12px;">If you did not request this, you can safely ignore this email.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#F5F7FB;padding:18px 36px;text-align:center;">
+                        <p style="margin:0;color:#9AA4B8;font-size:11.5px;">&copy; ' . date('Y') . ' ' . e(APP_NAME) . ' &middot; ' . e(APP_TAGLINE) . '</p>
+                    </td>
+                </tr>
+            </table>
+        </td></tr>
+    </table>';
+}
+
+function otp_code_block(string $code): string
+{
+    return '<table role="presentation" cellpadding="0" cellspacing="0"><tr>' .
+        implode('', array_map(function ($digit) {
+            return '<td style="width:40px;height:52px;background:#F5F7FB;border:1.5px solid #E5E9F0;border-radius:8px;
+                text-align:center;vertical-align:middle;font-size:22px;font-weight:800;color:#2563EB;font-family:Arial,sans-serif;margin-right:6px;">' . e($digit) . '</td><td style="width:6px;"></td>';
+        }, str_split($code))) .
+        '</tr></table>';
+}
+
+
 // Requires PHPMailer installed via Composer in /vendor,
 // or the 3 PHPMailer source files placed in /vendor/phpmailer/.
 // ---------------------------------------------------------
@@ -162,8 +224,33 @@ function send_email(string $toEmail, string $toName, string $subject, string $ht
         return true;
     } catch (Exception $e) {
         error_log('Mail error: ' . ($mail->ErrorInfo ?? $e->getMessage()));
-        echo '<pre style="background-color: #fee; padding: 10px;">MAIL ERROR: ' . htmlspecialchars($mail->ErrorInfo ?? $e->getMessage()) . '</pre>';
         return false;
+    }
+}
+
+// ---------------------------------------------------------
+// Slugs (used for company tenant sign-up links)
+// ---------------------------------------------------------
+function slugify(string $text): string
+{
+    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+    $text = trim($text, '-');
+    $text = strtolower($text);
+    $text = preg_replace('~[^-\w]+~', '', $text);
+    return $text !== '' ? $text : 'company';
+}
+
+function generate_unique_company_slug(PDO $db, string $companyName, int $excludeId = 0): string
+{
+    $base = slugify($companyName);
+    $slug = $base;
+    $i = 2;
+    while (true) {
+        $stmt = $db->prepare("SELECT id FROM companies WHERE slug = ? AND id != ?");
+        $stmt->execute([$slug, $excludeId]);
+        if (!$stmt->fetch()) return $slug;
+        $slug = $base . '-' . $i;
+        $i++;
     }
 }
 

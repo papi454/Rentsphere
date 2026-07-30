@@ -136,10 +136,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
+<div class="topbar" style="position:sticky;top:0;">
+    <div class="topbar-left">
+        <div class="auth-logo-mark" style="width:36px;height:36px;font-size:14px;">R</div>
+        <strong style="font-family:var(--font-display);font-size:16px;"><?= e(APP_NAME) ?></strong>
+    </div>
+    <div class="topbar-right">
+        <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-moon"></i></button>
+        <a href="<?= APP_URL ?>/auth/logout.php" class="icon-btn" style="text-decoration:none;" title="Log Out"><i class="fa-solid fa-right-from-bracket"></i></a>
+    </div>
+</div>
 <div class="page-body" style="max-width:900px;margin:0 auto;">
     <div class="page-header">
-        <div><h1 class="page-title">Welcome, <?= e($user['first_name']) ?></h1><p class="page-subtitle">Your lease, payments, and maintenance requests.</p></div>
-        <a href="<?= APP_URL ?>/auth/logout.php" class="btn btn-outline">Log Out</a>
+        <div><h1 class="page-title">Welcome, <?= e($user['first_name']) ?> 👋</h1><p class="page-subtitle">Your lease, payments, and maintenance requests.</p></div>
     </div>
 
     <?php if ($msg = get_flash('success')): ?><div class="alert alert-success" data-autohide><?= e($msg) ?></div><?php endif; ?>
@@ -151,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
     <?php else: ?>
     <div class="grid-2">
         <div class="card">
-            <h3>My Lease</h3>
+            <h3><i class="fa-solid fa-file-signature" style="color:var(--color-primary);"></i> My Lease</h3>
             <?php if ($lease): ?>
                 <p><strong><?= e($lease['property_name'] . ' — ' . $lease['unit_number']) ?></strong></p>
                 <p>Rent: $<?= money($lease['rent_amount']) ?>/mo</p>
@@ -161,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
             <?php endif; ?>
         </div>
         <div class="card">
-            <h3>Submit Maintenance Request</h3>
+            <h3><i class="fa-solid fa-screwdriver-wrench" style="color:var(--color-primary);"></i> Submit Maintenance Request</h3>
             <?php if ($lease): ?>
             <form method="POST">
                 <?= csrf_field() ?>
@@ -180,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
     </div>
 
     <div class="card" style="margin-top:20px;max-width:600px;">
-        <h3>Complete Your Profile</h3>
+        <h3><i class="fa-solid fa-id-card" style="color:var(--color-primary);"></i> Complete Your Profile</h3>
         <p class="text-secondary">Add your phone, emergency contact, ID, and photo — this is your info to keep up to date.</p>
         <form method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
@@ -199,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
     </div>
 
     <div class="card" style="margin-top:20px;">
-        <h3>Outstanding &amp; Rent Due</h3>
+        <h3><i class="fa-solid fa-hand-holding-dollar" style="color:var(--color-warning);"></i> Outstanding &amp; Rent Due</h3>
         <?php if ($lease && !$rentAlreadyRequested): ?>
             <div style="padding:14px 0;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
                 <div><strong>Monthly Rent</strong><br><span class="text-secondary">$<?= money($lease['rent_amount']) ?> due this month</span></div>
@@ -290,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
     </script>
 
     <div class="card" style="margin-top:20px;">
-        <h3>Payment History</h3>
+        <h3><i class="fa-solid fa-receipt" style="color:var(--color-primary);"></i> Payment History</h3>
         <?php if (empty($payments)): ?>
             <div class="empty-state"><i class="fa-solid fa-receipt"></i><h3>No payments yet</h3></div>
         <?php else: ?>
@@ -307,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['form_action'] ?? '') === '
     </div>
 
     <div class="card" style="margin-top:20px;">
-        <h3>My Maintenance Requests</h3>
+        <h3><i class="fa-solid fa-list-check" style="color:var(--color-primary);"></i> My Maintenance Requests</h3>
         <?php if (empty($maintenance)): ?>
             <div class="empty-state"><i class="fa-solid fa-screwdriver-wrench"></i><h3>No requests submitted</h3></div>
         <?php else: ?>

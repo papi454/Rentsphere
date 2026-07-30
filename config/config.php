@@ -14,7 +14,10 @@ ini_set('error_log', __DIR__ . '/../logs/php_errors.log');
 
 define('APP_NAME', 'RentSphere');
 define('APP_TAGLINE', 'Smart Property Management, Simplified.');
-define('APP_URL', 'http://localhost/rentsphere'); // change to your local path
+$autoScheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$autoHost   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$autoPath   = '/rentsphere'; // change this ONE thing only if you move to a different subfolder or domain root
+define('APP_URL', $autoScheme . '://' . $autoHost . $autoPath); // change to your local path
 define('APP_ENV', 'development'); // 'development' | 'production'
 
 // Branding
