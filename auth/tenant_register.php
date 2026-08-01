@@ -5,13 +5,40 @@ if (is_logged_in()) redirect(APP_URL . '/admin/dashboard.php');
 $db = Database::getConnection();
 $errors = [];
 
-// This install belongs to one company (the first admin's company)
-$companyId = (int) $db->query("SELECT id FROM companies ORDER BY id ASC LIMIT 1")->fetchColumn();
-
-if (!$companyId) {
-    flash('error', 'This system is not set up yet. Please contact your property administrator.');
-    redirect(APP_URL . '/auth/login.php');
+$companySlug = trim($_GET['company'] ?? $_POST['company'] ?? '');
+$company = null;
+if ($companySlug !== '') {
+    $stmt = $db->prepare("SELECT * FROM companies WHERE slug = ?");
+    $stmt->execute([$companySlug]);
+    $company = $stmt->fetch();
 }
+
+if (!$company) {
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenant Sign Up — <?= e(APP_NAME) ?></title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+<div class="auth-page">
+    <div class="card-glass auth-card" style="text-align:center;">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:40px;color:var(--color-warning);margin-bottom:14px;"></i>
+        <h1 class="auth-title">Sign-up link needed</h1>
+        <p class="auth-subtitle">This link is missing or invalid. Ask your property manager or caretaker for their tenant sign-up link, which looks like:<br><code>tenant_register.php?company=their-company-name</code></p>
+        <a href="login.php" class="btn btn-outline w-full">Back to Login</a>
+    </div>
+</div>
+</body>
+</html>
+<?php
+    exit;
+}
+
+$companyId = (int) $company['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify_or_die();
@@ -58,21 +85,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->commit();
 
         log_activity('tenant_self_registered', "Tenant self-registered, awaiting approval", $userId, $companyId);
-        log_activity('tenant_self_registered', "Tenant self-registered, awaiting approval", $userId, $companyId);
-
-// Notify every admin/caretaker who can actually approve this application
-$stmt = $db->prepare("SELECT id FROM users WHERE company_id = ? AND role IN ('administrator','caretaker') AND is_active = 1");
-$stmt->execute([$companyId]);
-foreach ($stmt->fetchAll() as $staffMember) {
-    create_notification($companyId, 'new_tenant_application', 'New Tenant Application',
-        "$firstName $lastName has requested a tenant account and is awaiting approval.", $staffMember['id']);
-}
+        create_notification($companyId, 'new_tenant_application', 'New Tenant Application',
+            "$firstName $lastName has requested a tenant account and is awaiting approval.");
 
         $verifyLink = APP_URL . '/auth/verify_email.php?token=' . $token;
-        $emailBody = "<p>Hi {$firstName},</p>
-            <p>Thanks for signing up! First, verify your email:</p>
-            <p><a href='{$verifyLink}' style='background:#2563EB;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;'>Verify Email</a></p>
-            <p>After that, your property administrator or caretaker will review your request and assign you to your unit. You'll get another email once you're approved and can log in.</p>";
+        $emailBody = build_email_html(
+            "Welcome to " . APP_NAME . "!",
+            "<p style='margin:0 0 18px;'>Hi {$firstName}, thanks for signing up for {$company['name']}'s tenant portal. First, verify your email address:</p>
+             <p style='margin:18px 0 0;color:#9AA4B8;font-size:13px;'>After verifying, your property administrator or caretaker will review your request and assign you to your unit. You'll get another email once you're approved and can log in.</p>",
+            "Verify My Email",
+            $verifyLink
+        );
         @send_email($email, $firstName, 'Verify your ' . APP_NAME . ' tenant account', $emailBody);
 
         flash('success', 'Account created! Check your email to verify it. Your administrator will review your request and assign you to your unit before you can log in.');
@@ -97,7 +120,7 @@ foreach ($stmt->fetchAll() as $staffMember) {
             <div class="auth-logo-text"><?= e(APP_NAME) ?></div>
         </div>
         <h1 class="auth-title">Create your tenant account</h1>
-        <p class="auth-subtitle">Sign up, then your property administrator will approve you and assign your unit.</p>
+        <p class="auth-subtitle">Signing up for <strong><?= e($company['name']) ?></strong>. After this, your administrator or caretaker will approve you and assign your unit.</p>
 
         <?php if (!empty($errors)): ?>
             <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i>
@@ -107,6 +130,7 @@ foreach ($stmt->fetchAll() as $staffMember) {
 
         <form method="POST" novalidate>
             <?= csrf_field() ?>
+            <input type="hidden" name="company" value="<?= e($companySlug) ?>">
             <div class="form-group d-flex gap-12">
                 <div style="flex:1"><label class="form-label">First Name</label><input type="text" name="first_name" class="form-control" required></div>
                 <div style="flex:1"><label class="form-label">Last Name</label><input type="text" name="last_name" class="form-control" required></div>

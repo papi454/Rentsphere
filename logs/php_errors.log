@@ -50,3 +50,18 @@ Stack trace:
 #0 C:\laragon\www\rentsphere\admin\payments.php(32): PDOStatement->execute(Array)
 #1 {main}
   thrown in C:\laragon\www\rentsphere\admin\payments.php on line 32
+[31-Jul-2026 06:49:58 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'rentsphere.chat_messages' doesn't exist in C:\laragon\www\rentsphere\chat.php:58
+Stack trace:
+#0 C:\laragon\www\rentsphere\chat.php(58): PDO->prepare('SELECT cm.*, u....')
+#1 {main}
+  thrown in C:\laragon\www\rentsphere\chat.php on line 58
+[31-Jul-2026 06:50:02 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'rentsphere.chat_messages' doesn't exist in C:\laragon\www\rentsphere\chat.php:58
+Stack trace:
+#0 C:\laragon\www\rentsphere\chat.php(58): PDO->prepare('SELECT cm.*, u....')
+#1 {main}
+  thrown in C:\laragon\www\rentsphere\chat.php on line 58
+[31-Jul-2026 07:00:52 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'rentsphere.chat_messages' doesn't exist in C:\laragon\www\rentsphere\chat.php:58
+Stack trace:
+#0 C:\laragon\www\rentsphere\chat.php(58): PDO->prepare('SELECT cm.*, u....')
+#1 {main}
+  thrown in C:\laragon\www\rentsphere\chat.php on line 58

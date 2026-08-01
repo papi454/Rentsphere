@@ -2,10 +2,13 @@
 /**
  * Include AFTER require_role([...]) in every dashboard page.
  * Expects optional $pageTitle and $pageSubtitle variables set before including.
+ * Sidebar navigation automatically adapts to the logged-in user's role.
  */
 $user = current_user();
 $currentPage = basename($_SERVER['SCRIPT_NAME']);
+$currentFolder = basename(dirname($_SERVER['SCRIPT_NAME']));
 $unreadCount = $user ? unread_notification_count($user['id']) : 0;
+$role = $user['role'] ?? 'administrator';
 
 function nav_active(string $file, string $current): string {
     return $file === $current ? 'active' : '';
@@ -29,38 +32,73 @@ function nav_active(string $file, string $current): string {
             <span class="sidebar-brand-text"><?= e(APP_NAME) ?></span>
         </div>
 
-        <div class="nav-section-title">Main</div>
-        <ul class="nav-list">
-            <li class="nav-item <?= nav_active('dashboard.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/dashboard.php"><i class="fa-solid fa-gauge"></i><span class="nav-label">Dashboard</span></a></li>
-        </ul>
+        <?php if ($role === 'administrator'): ?>
+            <div class="nav-section-title">Main</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('dashboard.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/dashboard.php"><i class="fa-solid fa-gauge"></i><span class="nav-label">Dashboard</span></a></li>
+            </ul>
 
-        <div class="nav-section-title">Property Management</div>
-        <ul class="nav-list">
-            <li class="nav-item <?= nav_active('properties.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/properties.php"><i class="fa-solid fa-building"></i><span class="nav-label">Properties</span></a></li>
-            <li class="nav-item <?= nav_active('units.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/units.php"><i class="fa-solid fa-door-open"></i><span class="nav-label">Units</span></a></li>
-            <li class="nav-item <?= nav_active('tenants.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/tenants.php"><i class="fa-solid fa-users"></i><span class="nav-label">Tenants</span></a></li>
-            <li class="nav-item <?= nav_active('leases.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/leases.php"><i class="fa-solid fa-file-signature"></i><span class="nav-label">Leases</span></a></li>
-        </ul>
+            <div class="nav-section-title">Property Management</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('properties.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/properties.php"><i class="fa-solid fa-building"></i><span class="nav-label">Properties</span></a></li>
+                <li class="nav-item <?= nav_active('units.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/units.php"><i class="fa-solid fa-door-open"></i><span class="nav-label">Units</span></a></li>
+                <li class="nav-item <?= nav_active('tenants.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/tenants.php"><i class="fa-solid fa-users"></i><span class="nav-label">Tenants</span></a></li>
+                <li class="nav-item <?= nav_active('leases.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/leases.php"><i class="fa-solid fa-file-signature"></i><span class="nav-label">Leases</span></a></li>
+            </ul>
 
-        <div class="nav-section-title">Finance</div>
-        <ul class="nav-list">
-            <li class="nav-item <?= nav_active('payments.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/payments.php"><i class="fa-solid fa-hand-holding-dollar"></i><span class="nav-label">Rent Collection</span></a></li>
-            <li class="nav-item <?= nav_active('expenses.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/expenses.php"><i class="fa-solid fa-receipt"></i><span class="nav-label">Expenses</span></a></li>
-            <li class="nav-item <?= nav_active('reports.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/reports.php"><i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports</span></a></li>
-        </ul>
+            <div class="nav-section-title">Finance</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('payments.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/payments.php"><i class="fa-solid fa-hand-holding-dollar"></i><span class="nav-label">Rent Collection</span></a></li>
+                <li class="nav-item <?= nav_active('payment_confirmations.php', $currentPage) ?>"><a href="<?= APP_URL ?>/caretaker/payment_confirmations.php"><i class="fa-solid fa-circle-check"></i><span class="nav-label">Confirm Payments</span></a></li>
+                <li class="nav-item <?= nav_active('expenses.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/expenses.php"><i class="fa-solid fa-receipt"></i><span class="nav-label">Expenses</span></a></li>
+                <li class="nav-item <?= nav_active('reports.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/reports.php"><i class="fa-solid fa-chart-line"></i><span class="nav-label">Reports</span></a></li>
+            </ul>
 
-        <div class="nav-section-title">Operations</div>
-        <ul class="nav-list">
-            <li class="nav-item <?= nav_active('maintenance.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/maintenance.php"><i class="fa-solid fa-screwdriver-wrench"></i><span class="nav-label">Maintenance</span></a></li>
-            <li class="nav-item <?= nav_active('notifications.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/notifications.php"><i class="fa-solid fa-bell"></i><span class="nav-label">Notifications</span></a></li>
-        </ul>
+            <div class="nav-section-title">Operations</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('maintenance.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/maintenance.php"><i class="fa-solid fa-screwdriver-wrench"></i><span class="nav-label">Maintenance</span></a></li>
+                <li class="nav-item <?= nav_active('chat.php', $currentPage) ?>"><a href="<?= APP_URL ?>/chat.php"><i class="fa-solid fa-comments"></i><span class="nav-label">Chat</span></a></li>
+                <li class="nav-item <?= nav_active('notifications.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/notifications.php"><i class="fa-solid fa-bell"></i><span class="nav-label">Notifications</span></a></li>
+            </ul>
 
-        <div class="nav-section-title">Administration</div>
-        <ul class="nav-list">
-            <li class="nav-item <?= nav_active('users.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/users.php"><i class="fa-solid fa-user-shield"></i><span class="nav-label">Users &amp; Roles</span></a></li>
-            <li class="nav-item <?= nav_active('activity_logs.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/activity_logs.php"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-label">Activity Logs</span></a></li>
-            <li class="nav-item <?= nav_active('settings.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/settings.php"><i class="fa-solid fa-gear"></i><span class="nav-label">Settings</span></a></li>
-        </ul>
+            <div class="nav-section-title">Administration</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('users.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/users.php"><i class="fa-solid fa-user-shield"></i><span class="nav-label">Users &amp; Roles</span></a></li>
+                <li class="nav-item <?= nav_active('activity_logs.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/activity_logs.php"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-label">Activity Logs</span></a></li>
+                <li class="nav-item <?= nav_active('settings.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/settings.php"><i class="fa-solid fa-gear"></i><span class="nav-label">Settings</span></a></li>
+            </ul>
+
+        <?php elseif ($role === 'caretaker'): ?>
+            <div class="nav-section-title">Main</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('dashboard.php', $currentPage) ?>"><a href="<?= APP_URL ?>/caretaker/dashboard.php"><i class="fa-solid fa-gauge"></i><span class="nav-label">Dashboard</span></a></li>
+            </ul>
+
+            <div class="nav-section-title">Tenants</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('tenants.php', $currentPage) ?>"><a href="<?= APP_URL ?>/caretaker/tenants.php"><i class="fa-solid fa-users"></i><span class="nav-label">My Tenants</span></a></li>
+            </ul>
+
+            <div class="nav-section-title">Billing</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('billing.php', $currentPage) ?>"><a href="<?= APP_URL ?>/caretaker/billing.php"><i class="fa-solid fa-file-invoice-dollar"></i><span class="nav-label">Billing</span></a></li>
+                <li class="nav-item <?= nav_active('payment_confirmations.php', $currentPage) ?>"><a href="<?= APP_URL ?>/caretaker/payment_confirmations.php"><i class="fa-solid fa-hand-holding-dollar"></i><span class="nav-label">Confirm Payments</span></a></li>
+            </ul>
+
+            <div class="nav-section-title">Operations</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('chat.php', $currentPage) ?>"><a href="<?= APP_URL ?>/chat.php"><i class="fa-solid fa-comments"></i><span class="nav-label">Chat</span></a></li>
+                <li class="nav-item <?= nav_active('notifications.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/notifications.php"><i class="fa-solid fa-bell"></i><span class="nav-label">Notifications</span></a></li>
+            </ul>
+
+        <?php else: ?>
+            <div class="nav-section-title">Main</div>
+            <ul class="nav-list">
+                <li class="nav-item <?= nav_active('dashboard.php', $currentPage) ?>"><a href="<?= APP_URL ?>/tenant/dashboard.php"><i class="fa-solid fa-gauge"></i><span class="nav-label">My Portal</span></a></li>
+                <li class="nav-item <?= nav_active('chat.php', $currentPage) ?>"><a href="<?= APP_URL ?>/chat.php"><i class="fa-solid fa-comments"></i><span class="nav-label">Chat</span></a></li>
+                <li class="nav-item <?= nav_active('notifications.php', $currentPage) ?>"><a href="<?= APP_URL ?>/admin/notifications.php"><i class="fa-solid fa-bell"></i><span class="nav-label">Notifications</span></a></li>
+            </ul>
+        <?php endif; ?>
     </aside>
 
     <div class="main-content">
@@ -85,13 +123,17 @@ function nav_active(string $file, string $current): string {
                         <div class="avatar"><?= e(strtoupper(substr($user['first_name'] ?? 'U', 0, 1) . substr($user['last_name'] ?? '', 0, 1))) ?></div>
                         <div>
                             <div class="user-menu-name"><?= e(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?></div>
-                            <div class="user-menu-role"><?= e(ucfirst($user['role'] ?? '')) ?></div>
+                            <div class="user-menu-role"><?= e(ucfirst($role)) ?></div>
                         </div>
                         <i class="fa-solid fa-chevron-down" style="font-size:11px;color:var(--text-secondary);"></i>
                     </div>
                     <div class="card" id="userMenuDropdown" style="display:none;position:absolute;right:0;top:52px;min-width:180px;padding:8px;z-index:50;">
-                        <a href="<?= APP_URL ?>/admin/profile.php" class="nav-item" style="display:block;padding:9px 12px;border-radius:8px;color:var(--text-primary);">My Profile</a>
+                        <?php if ($role !== 'tenant'): ?>
+                        <a href="<?= APP_URL ?>/admin/profile.php" style="display:block;padding:9px 12px;border-radius:8px;color:var(--text-primary);">My Profile</a>
+                        <?php endif; ?>
+                        <?php if ($role === 'administrator'): ?>
                         <a href="<?= APP_URL ?>/admin/settings.php" style="display:block;padding:9px 12px;border-radius:8px;color:var(--text-primary);">Settings</a>
+                        <?php endif; ?>
                         <hr style="border-color:var(--border-color);margin:6px 0;">
                         <a href="<?= APP_URL ?>/auth/logout.php" style="display:block;padding:9px 12px;border-radius:8px;color:var(--color-danger);">Log Out</a>
                     </div>

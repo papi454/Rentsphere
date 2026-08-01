@@ -21,20 +21,12 @@ if (isset($_GET['resend'])) {
         $stmt = $db->prepare("INSERT INTO otp_codes (user_id, code, purpose, expires_at) VALUES (?, ?, 'login_2fa', ?)");
         $stmt->execute([$userId, $otp, $expiresAt]);
 
-       $emailBody = "
-<div style='font-family:Arial,sans-serif;max-width:480px;margin:0 auto;'>
-    <div style='background:linear-gradient(135deg,#2563EB,#4F46E5,#06B6D4);padding:28px 24px;border-radius:16px 16px 0 0;text-align:center;'>
-        <div style='width:48px;height:48px;background:#fff;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#2563EB;'>R</div>
-        <h1 style='color:#fff;margin:14px 0 0;font-size:19px;'>New Verification Code</h1>
-    </div>
-    <div style='background:#ffffff;padding:32px 24px;border-radius:0 0 16px 16px;border:1px solid #E5E9F0;border-top:none;text-align:center;'>
-        <p style='font-size:14px;color:#6B7280;margin-bottom:4px;'>Here's your fresh code:</p>
-        <div style='background:#F5F7FB;border:1.5px dashed #2563EB;border-radius:12px;padding:18px;margin:16px 0;display:inline-block;'>
-            <span style='font-size:34px;font-weight:800;letter-spacing:10px;color:#2563EB;font-family:monospace;'>{$otp}</span>
-        </div>
-        <p style='font-size:12.5px;color:#9CA3AF;'>Expires in " . (OTP_EXPIRY_SECONDS / 60) . " minutes.</p>
-    </div>
-</div>";
+        $emailBody = build_email_html(
+            "Your New Verification Code",
+            "<p style='margin:0 0 18px;'>Here's your new login code for " . APP_NAME . ":</p>"
+            . otp_code_block($otp) .
+            "<p style='margin:18px 0 0;color:#9AA4B8;font-size:13px;'>This code expires in " . (OTP_EXPIRY_SECONDS / 60) . " minutes.</p>"
+        );
         @send_email($user['email'], $user['first_name'], 'Your new verification code', $emailBody);
         $resent = true;
     }

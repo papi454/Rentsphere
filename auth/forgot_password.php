@@ -24,10 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $db->prepare("INSERT INTO otp_codes (user_id, code, purpose, expires_at) VALUES (?, ?, 'password_reset', ?)");
             $stmt->execute([$user['id'], $otp, $expiresAt]);
 
-            $emailBody = "<p>Hi {$user['first_name']},</p>
-                <p>Your " . APP_NAME . " password reset code is:</p>
-                <h2 style='letter-spacing:6px;'>{$otp}</h2>
-                <p>This code expires in " . (PASSWORD_RESET_EXPIRY_SECONDS / 60) . " minutes. If you didn't request this, you can ignore this email.</p>";
+            $emailBody = build_email_html(
+                "Reset Your Password",
+                "<p style='margin:0 0 18px;'>Hi {$user['first_name']}, use this code to reset your " . APP_NAME . " password:</p>"
+                . otp_code_block($otp) .
+                "<p style='margin:18px 0 0;color:#9AA4B8;font-size:13px;'>This code expires in " . (PASSWORD_RESET_EXPIRY_SECONDS / 60) . " minutes. If you didn't request this, you can ignore this email.</p>"
+            );
             @send_email($user['email'], $user['first_name'], 'Reset your ' . APP_NAME . ' password', $emailBody);
 
             $_SESSION['pending_reset_user_id'] = $user['id'];

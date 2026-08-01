@@ -68,10 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'You have been assigned to your unit. You can now log in to your tenant portal.', $tenant['user_id']);
         }
         if ($tenant['email']) {
-            $emailBody = "<p>Hi {$tenant['first_name']},</p>
-                <p>Good news — your tenant account has been approved and you've been assigned to your unit.</p>
-                <p>You can now log in and complete the rest of your profile (phone, emergency contact, ID, and photo) from your tenant portal.</p>
-                <p><a href='" . APP_URL . "/auth/login.php' style='background:#2563EB;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;'>Log In Now</a></p>";
+            $emailBody = build_email_html(
+                "You're Approved! 🎉",
+                "<p style='margin:0 0 12px;'>Hi {$tenant['first_name']}, good news — your tenant account has been approved and you've been assigned to your unit.</p>
+                 <p style='margin:0;'>You can now log in and complete the rest of your profile (phone, emergency contact, ID, and photo) from your tenant portal.</p>",
+                "Log In Now",
+                APP_URL . '/auth/login.php'
+            );
             @send_email($tenant['email'], $tenant['first_name'], 'Your ' . APP_NAME . ' account is approved', $emailBody);
         }
         flash('success', 'Tenant approved and moved into the unit. They can now log in.');
